@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watering & Maintenance Schedule</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f4f6f8;
+}
+
+.header {
+    text-align: center;
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    background: #1b5e20;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.calendar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 15px;
+}
+
+.day-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.today {
+    border: 3px solid #43a047;
+    background: #f1fff3;
+}
+
+.date {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #1b5e20;
+}
+
+.section-title {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.task {
+    margin: 6px 0;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.highlight {
+    color: #c62828;
+    font-weight: bold;
+}
+
+.maintenance {
+    color: #1565c0;
+    font-weight: bold;
+}
+
+.watering-box {
+    background: #f1f8e9;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.maintenance-box {
+    background: #eef5ff;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.notes {
+    background: #fff8e1;
+    padding: 15px;
+    font-size: 13px;
+    border-top: 2px solid #f9a825;
+    margin: 15px;
+    border-radius: 10px;
+}
+
+summary {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header" id="header"></div>
+
+<div class="calendar" id="calendar"></div>
+
+<details class="notes">
+<summary>Spray Notes</summary>
+
+<br>
+
+<b>Cycas</b> = Profenofos 40% + Cypermethrin 4% EC (25ml/15L)<br>
+<b>Ficus, Acalypha, & Lilies</b> = Same as Cycas<br><br>
+
+<b>Areca</b> =<br>
+Azoxystrobin 18.2% + Difenoconazole 11.4% SC (30ml/15L)<br>
+Validamycin 3% L (45ml/15L)<br>
+Hexaconazole 5% EC (25ml/10L)<br>
+Amrutzime (30ml/15L)
+
+</details>
+
+<script>
+
+// ===== CONFIGURATION =====
+
+// Current month & year
+const today = new Date();
+
+const currentMonth = today.getMonth();
+const currentYear = today.getFullYear();
+
+// Fixed start date = 1st of current month
+const startDate = new Date(currentYear, currentMonth, 1);
+
+// Total days in current month
+const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+const startWithNetArea1 = false;
+const motherStartOffset = 1;
+
+const dripCycle = [
+    "Drip 3",
+    "Drip Kaka",
+    "Drip Jetropha"
+];
+
+// ==========================
+
+// Dynamic Header
+const monthName = startDate.toLocaleString('default', {
+    month: 'long'
+});
+
+document.getElementById("header").innerText =
+    `${monthName} Watering & Maintenance Schedule`;
+
+const calendar = document.getElementById("calendar");
+
+// ===== GENERATE DAYS =====
+
+for (let i = 0; i < totalDays; i++) {
+
+    let currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + i);
+
+    let day = currentDate.getDay();
+    let date = currentDate.getDate();
+    let month = currentDate.getMonth();
+    let year = currentDate.getFullYear();
+
+    // ===== TODAY HIGHLIGHT =====
+
+    let isToday =
+        currentDate.getDate() === today.getDate() &&
+        currentDate.getMonth() === today.getMonth() &&
+        currentDate.getFullYear() === today.getFullYear();
+
+    // ===== DATE FORMAT =====
+
+    let weekday = currentDate.toLocaleDateString('en-US', {
+        weekday: 'long'
+    });
+
+    let formattedDate = currentDate.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+
+    // ===== NET AREA =====
+
+    let netArea = startWithNetArea1
+        ? (i % 2 === 0 ? "Net Area 1" : "Net Area 2")
+        : (i % 2 === 0 ? "Net Area 2" : "Net Area 1");
+
+    // ===== MOTHER PLANTS =====
+
+    let mother =
+        ((i - motherStartOffset) % 4 === 0 &&
+        i >= motherStartOffset);
+
+    // ===== DRIP ROTATION =====
+
+    let drip = dripCycle[i % dripCycle.length];
+
+    // ===== WATERING EXTRAS =====
+
+    let wateringExtras = [];
+
+    // Polyhouse every Sunday
+    if (day === 0) {
+        wateringExtras.push("Polyhouse");
+    }
+
+    // ===== MAINTENANCE =====
+
+    let maintenanceTasks = [];
+
+    // Cycas – Wednesday & Sunday
+    if (day === 3 || day === 0) {
+        maintenanceTasks.push("Cycas Treatment");
+    }
+
+    // 1st of Month
+    if (date === 1) {
+        maintenanceTasks.push("Ficus Treatment");
+        maintenanceTasks.push("Acalypha Treatment");
+        maintenanceTasks.push("Lilies Treatment");
+    }
+
+    // 15th
+    if (date === 15) {
+        maintenanceTasks.push("Areca Treatment");
+        maintenanceTasks.push("Indoor Plants Treatment");
+    }
+
+    // 16th
+    if (date === 16) {
+        maintenanceTasks.push("Plant Shifting (Mid Area)");
+    }
+
+    // Last Day of Month
+    let lastDay = new Date(year, month + 1, 0).getDate();
+
+    if (date === lastDay) {
+        maintenanceTasks.push("Areca Treatment");
+        maintenanceTasks.push("Indoor Plants Treatment");
+        maintenanceTasks.push("Plant Shifting (Back Area)");
+    }
+
+    // ===== BUILD CARD =====
+
+    let card = document.createElement("div");
+
+    card.className = isToday
+        ? "day-card today"
+        : "day-card";
+
+    // ===== WATERING HTML =====
+
+    let wateringHTML = `
+    <div class="watering-box">
+
+        <div class="section-title">Watering:</div>
+
+        <div class="task">🌿 ${netArea}</div>
+
+        <div class="task">🌞 Outdoor</div>
+
+        <div class="task">💧 ${drip}</div>
+
+        ${
+            mother
+            ? `<div class="task highlight">🌱 Mother Plants</div>`
+            : ""
+        }
+
+    `;
+
+    wateringExtras.forEach(w => {
+        wateringHTML += `
+        <div class="task highlight">🚿 ${w}</div>
+        `;
+    });
+
+    wateringHTML += `</div>`;
+
+    // ===== MAINTENANCE HTML =====
+
+    let maintenanceHTML = "";
+
+    if (maintenanceTasks.length > 0) {
+
+        maintenanceHTML += `
+        <div class="maintenance-box">
+
+        <div class="section-title">
+        Maintenance:
+        </div>
+        `;
+
+        maintenanceTasks.forEach(task => {
+
+            maintenanceHTML += `
+            <div class="task maintenance">
+            🔧 ${task}
+            </div>
+            `;
+
+        });
+
+        maintenanceHTML += `</div>`;
+    }
+
+    // ===== CARD CONTENT =====
+
+    card.innerHTML = `
+
+        <div class="date">
+
+            <div>${weekday}</div>
+
+            <div style="
+                font-size:14px;
+                font-weight:normal;
+                margin-top:3px;
+            ">
+                ${formattedDate}
+            </div>
+
+        </div>
+
+        ${wateringHTML}
+
+        ${maintenanceHTML}
+
+    `;
+
+    calendar.appendChild(card);
+}
+
+// ===== AUTO SCROLL TO TODAY =====
+
+const todayCard = document.querySelector(".today");
+
+if (todayCard) {
+
+    todayCard.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+}
+
+</script>
+
+</body>
+</html>
